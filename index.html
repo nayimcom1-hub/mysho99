@@ -35,48 +35,51 @@
         .modal input, .modal textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
         .close { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 24px; }
     
-   /* মোবাইল রেসপন্সিভ ডিজাইন (৩টি কলাম) */
+  /* মোবাইল রেসপন্সিভ ডিজাইন (২টি কলাম) */
 @media (max-width: 600px) {
     .product-grid {
-        grid-template-columns: repeat(3, 1fr); /* এখানে ৩টি কলাম করা হয়েছে */
-        gap: 8px; /* গ্যাপ কিছুটা কমানো হয়েছে */
-        padding: 5px;
+        grid-template-columns: repeat(2, 1fr); /* এখানে ২ দিয়ে কলাম কন্ট্রোল করা হয়েছে */
+        gap: 12px; /* কার্ডের মাঝখানের ফাঁকা জায়গা */
+        padding: 10px;
     }
 
     .img-container {
-        height: 100px; /* ৩টি কার্ডের জন্য ছবির উচ্চতা কিছুটা কমানো হয়েছে */
+        height: 150px; /* ২ কলামের জন্য পারফেক্ট ছবির উচ্চতা */
     }
 
     .product-card {
-        padding: 8px;
-        border-radius: 8px;
+        padding: 10px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
 
     .product-name {
-        font-size: 11px; /* লেখা ছোট করা হয়েছে যাতে ৩টি কার্ডে ফিট হয় */
-        height: 32px;
-        line-height: 1.2;
+        font-size: 14px; /* লেখা বড় এবং পরিষ্কার রাখা হয়েছে */
+        height: 38px;
+        margin-top: 5px;
     }
 
     .price-tag {
-        font-size: 13px;
-        margin-bottom: 5px;
+        font-size: 16px;
+        margin-bottom: 8px;
     }
 
     .old-p {
-        font-size: 10px;
-        display: block; /* অফার প্রাইস নিচের লাইনে দেখাবে জায়গা বাঁচাতে */
-        margin-right: 0;
+        font-size: 12px;
     }
 
     .buy-btn {
-        padding: 6px;
-        font-size: 11px;
-        border-radius: 4px;
+        padding: 10px;
+        font-size: 14px;
+        border-radius: 6px;
+    }
+
+    header {
+        padding: 10px 15px;
     }
 
     .logo {
-        font-size: 18px;
+        font-size: 20px;
     }
 }
     </style>
@@ -209,5 +212,6 @@
 </script>
 </body>
 </html>
+
 
 
