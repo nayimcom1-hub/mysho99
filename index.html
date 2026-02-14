@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MonKutir</title>
+    <title>ShopBD - Cloud Shopping</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     
@@ -34,13 +34,72 @@
         .modal-content { background: white; padding: 30px; border-radius: 10px; width: 380px; position: relative; text-align: center; }
         .modal input, .modal textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
         .close { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 24px; }
+    
+    /* মোবাইল রেসপন্সিভ ডিজাইন */
+@media (max-width: 600px) {
+    /* ১. সার্চ বার ছোট করা */
+    .search-bar-section input {
+        width: 90%;
+        font-size: 14px;
+    }
+
+    /* ২. ক্যাটাগরি বাটনগুলো স্ক্রলযোগ্য করা */
+    .categories-sec {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 10px;
+        gap: 5px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .cat-btn {
+        flex: 0 0 auto; /* বাটনগুলো যেন চ্যাপ্টা না হয়ে যায় */
+    }
+
+    /* ৩. গ্রিড সিস্টেম: প্রতি লাইনে ২টি পণ্য */
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr); /* ২ কলাম */
+        gap: 10px; /* গ্যাপ কমানো হয়েছে */
+        padding: 10px;
+    }
+
+    /* ৪. কার্ডের ভেতরের ডিজাইন মোবাইলের জন্য ছোট করা */
+    .product-card {
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .img-container {
+        height: 140px; /* মোবাইলে ইমেজ বক্সের হাইট কিছুটা কমানো */
+    }
+
+    .product-name {
+        font-size: 14px;
+        height: 40px; /* নাম বড় হলে যেন ভেঙে না যায় */
+        overflow: hidden;
+    }
+
+    .current-price {
+        font-size: 16px;
+    }
+
+    .old-price {
+        font-size: 11px;
+    }
+
+    .buy-now-btn {
+        padding: 8px;
+        font-size: 13px;
+    }
+}
+    
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo-area">
-        <div class="logo" onclick="location.reload()">MonKutir</div>
+        <div class="logo" onclick="location.reload()">ShopBD</div>
         <span class="home-link" onclick="location.reload()" style="color:white; margin-left:15px; cursor:pointer">Home</span>
     </div>
     <div class="auth-area" id="authBox">
@@ -164,5 +223,3 @@
 </script>
 </body>
 </html>
-
-
