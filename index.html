@@ -4,42 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShopBD - Cloud Shopping</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    
     <style>
+        /* আপনার দেওয়া CSS এখানে থাকবে */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #f0f2f5; }
-
-        header {
-            background: #2c3e50; color: white; padding: 12px 5%;
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+        header { background: #2c3e50; color: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
         .logo-area { display: flex; align-items: center; gap: 20px; }
         .logo { font-size: 24px; font-weight: bold; color: #3498db; cursor: pointer; }
-        .home-link { color: white; text-decoration: none; font-size: 15px; cursor: pointer; }
-
         .auth-area { display: flex; gap: 10px; align-items: center; }
-        .btn { padding: 8px 16px; border-radius: 5px; cursor: pointer; border: none; font-weight: bold; transition: 0.3s; }
+        .btn { padding: 8px 16px; border-radius: 5px; cursor: pointer; border: none; font-weight: bold; }
         .login-btn { background: transparent; color: white; border: 1px solid white; }
         .signup-btn { background: #3498db; color: white; }
-        .btn:hover { opacity: 0.8; }
-
         .search-section { background: #34495e; padding: 30px; text-align: center; }
-        .search-section input { width: 50%; padding: 12px 20px; border-radius: 25px; border: none; outline: none; font-size: 16px; }
-
+        .search-section input { width: 50%; padding: 12px 20px; border-radius: 25px; border: none; outline: none; }
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         .categories { display: flex; justify-content: center; gap: 10px; margin-bottom: 40px; }
-        .cat-btn { padding: 10px 25px; border: none; background: white; border-radius: 30px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .cat-btn { padding: 10px 25px; border: none; background: white; border-radius: 30px; cursor: pointer; font-weight: bold; }
         .cat-btn.active { background: #3498db; color: white; }
-
         .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; }
-        .product-card { background: white; border-radius: 12px; padding: 15px; text-align: center; transition: 0.3s; border: 1px solid #eee; }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .product-card { background: white; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #eee; }
         .product-card img { width: 100%; height: 220px; object-fit: cover; border-radius: 8px; }
         .price-tag { margin: 15px 0; font-size: 20px; color: #e74c3c; font-weight: bold; }
         .old-p { text-decoration: line-through; color: #999; font-size: 14px; margin-right: 8px; }
-
         .buy-now { background: #27ae60; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; }
-
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
         .modal-content { background: white; padding: 30px; border-radius: 10px; width: 380px; position: relative; text-align: center; }
         .modal input, .modal textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
@@ -51,7 +41,7 @@
 <header>
     <div class="logo-area">
         <div class="logo" onclick="location.reload()">ShopBD</div>
-        <span class="home-link" onclick="location.reload()">Home</span>
+        <span class="home-link" onclick="location.reload()" style="color:white; margin-left:15px; cursor:pointer">Home</span>
     </div>
     <div class="auth-area" id="authBox">
         <button class="btn login-btn" onclick="openM('authModal', 'Login')">Login</button>
@@ -59,9 +49,7 @@
     </div>
 </header>
 
-<div class="search-section">
-    <input type="text" id="srch" onkeyup="search()" placeholder="Search for products...">
-</div>
+<div class="search-section"><input type="text" id="srch" onkeyup="search()" placeholder="Search products..."></div>
 
 <div class="container">
     <div class="categories">
@@ -70,7 +58,7 @@
         <button class="cat-btn" onclick="filter('Fashion', this)">Fashion</button>
         <button class="cat-btn" onclick="filter('Gadget', this)">Gadget</button>
     </div>
-    <div class="product-grid" id="display">Loading products...</div>
+    <div class="product-grid" id="display">Loading...</div>
 </div>
 
 <div class="modal" id="authModal">
@@ -78,7 +66,6 @@
         <span class="close" onclick="closeM('authModal')">&times;</span>
         <h2 id="mTitle">Login</h2>
         <input type="email" id="uEmail" placeholder="Email Address">
-        <input type="password" placeholder="Password">
         <button class="buy-now" style="background:#3498db" onclick="handleAuth()">Submit</button>
     </div>
 </div>
@@ -96,18 +83,33 @@
 </div>
 
 <script>
-    const dbURL = "https://console.firebase.google.com/project/barrahms-app/database"; // এখানে আপনার ফায়ারবেস লিঙ্ক দিন
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+  apiKey: "AIzaSyCkYMVn0Jh4Oo8Mgm8WyVAOVe65lSLGeks",
+  authDomain: "barrahms-app.firebaseapp.com",
+  projectId: "barrahms-app",
+  storageBucket: "barrahms-app.firebasestorage.app",
+  messagingSenderId: "886499355529",
+  appId: "1:886499355529:web:25cbac7f63059da4b5cf58",
+  measurementId: "G-BGV32WE0BQ"
+};
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     let allP = [];
     let user = JSON.parse(localStorage.getItem('shopUser')) || null;
     let selectedItem = "";
 
-    async function load() {
+    function load() {
         if(user) updateHeader();
-        const res = await fetch(`${dbURL}/products.json`);
-        const data = await res.json();
-        if(!data) { document.getElementById('display').innerHTML = "No products found."; return; }
-        allP = Object.keys(data).map(key => ({...data[key], id: key}));
-        render(allP);
+        db.ref('products').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const div = document.getElementById('display');
+            if(!data) { div.innerHTML = "No products found."; return; }
+            allP = Object.keys(data).map(key => ({...data[key], id: key}));
+            render(allP);
+        });
     }
 
     function render(items) {
@@ -115,30 +117,25 @@
             <div class="product-card">
                 <img src="${p.image}">
                 <h3>${p.name}</h3>
-                <div class="price-tag">
-                    ${p.offer ? `<span class="old-p">৳${p.price}</span>৳${p.offer}` : `৳${p.price}`}
-                </div>
+                <div class="price-tag">${p.offer ? `<span class="old-p">৳${p.price}</span>৳${p.offer}` : `৳${p.price}`}</div>
                 <button class="buy-now" onclick="buy('${p.name}')">Buy Now</button>
-            </div>
-        `).join('');
+            </div>`).join('');
     }
 
     function buy(name) {
-        if(!user) { alert("Please login first!"); openM('authModal', 'Login'); return; }
+        if(!user) { openM('authModal', 'Login'); return; }
         selectedItem = name;
         document.getElementById('pSel').innerText = "Ordering: " + name;
         openM('shipModal');
     }
 
-    async function submitOrder() {
+    function submitOrder() {
         const n = document.getElementById('sName').value, p = document.getElementById('sPhone').value, a = document.getElementById('sAddr').value;
-        if(!n || !p || !a) return alert("Fill all fields");
-        await fetch(`${dbURL}/orders.json`, {
-            method: 'POST',
-            body: JSON.stringify({customer: n, phone: p, address: a, product: selectedItem, date: new Date().toLocaleString()})
-        });
-        alert("Order Placed Successfully!");
-        closeM('shipModal');
+        if(n && p && a) {
+            db.ref('orders').push({customer: n, phone: p, address: a, product: selectedItem, date: new Date().toLocaleString()});
+            alert("Order Placed!");
+            closeM('shipModal');
+        }
     }
 
     function handleAuth() {
@@ -151,7 +148,7 @@
     }
 
     function updateHeader() {
-        document.getElementById('authBox').innerHTML = `<span>Hi, <b>${user.name}</b></span> | <a href="#" onclick="logout()" style="color:#e74c3c; font-size:13px;">Logout</a>`;
+        document.getElementById('authBox').innerHTML = `<span>Hi, <b>${user.name}</b></span> | <a href="#" onclick="logout()" style="color:#e74c3c; font-size:13px; text-decoration:none">Logout</a>`;
     }
 
     function logout() { localStorage.removeItem('shopUser'); location.reload(); }
