@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Cloud Manager</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 30px; }
+        .container { max-width: 1000px; margin: auto; }
+        .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+        .input-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+        button { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-add { background: #3498db; width: 100%; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #3498db; color: white; }
+        .btn-del { background: #e74c3c; }
+        .btn-edit { background: #f39c12; margin-right: 5px; }
+        .status-badge { background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2 id="formTitle">নতুন পণ্য যোগ করুন</h2>
+        <input type="hidden" id="editKey">
+        <div class="input-group">
+            <input type="text" id="pn" placeholder="Product Name">
+            <input type="number" id="pp" placeholder="Price">
+            <input type="number" id="po" placeholder="Offer Price (Optional)">
+            <select id="pc">
+                <option value="Electronics">Electronics</option>
+                <option value="Fashion">Fashion</option>
+                <option value="Gadget">Gadget</option>
+            </select>
+            <input type="text" id="pi" placeholder="Image URL" style="grid-column: span 2;">
+        </div>
+        <button class="btn-add" id="mainBtn" onclick="save()">Upload to Cloud</button>
+    </div>
+
+    <div class="card">
+        <h2 style="color:#e67e22">অর্ডার ইনবক্স (Messages)</h2>
+        <table id="oTable">
+            <thead><tr><th>ক্রেতা</th><th>ফোন</th><th>পণ্য</th><th>ঠিকানা</th><th>অ্যাকশন</th></tr></thead>
+            <tbody id="oList"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>পণ্য ব্যবস্থাপনা</h2>
+        <table>
+            <thead><tr><th>ছবি</th><th>নাম</th><th>দাম</th><th>অ্যাকশন</th></tr></thead>
+            <tbody id="pList"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const dbURL = "https://console.firebase.google.com/project/barrahms-app/database"; // আপনার ফায়ারবেস লিঙ্ক
+
+    async function save() {
+        const n = document.getElementById('pn').value, p = document.getElementById('pp').value, 
+              o = document.getElementById('po').value, c = document.getElementById('pc').value, 
+              i = document.getElementById('pi').value, k = document.getElementById('editKey').value;
+        
+        if(!n || !p) return alert("Fill Name and Price");
+        const productData = { name: n, price: p, offer: o, category: c, image: i };
+        
+        if(k) {
+            await fetch(`${dbURL}/products/${k}.json`, { method: 'PUT', body: JSON.stringify(productData) });
+        } else {
+            await fetch(`${dbURL}/products.json`, { method: 'POST', body: JSON.stringify(productData) });
+        }
+        location.reload();
+    }
+
+    async function loadData() {
+        const resP = await fetch(`${dbURL}/products.json`);
+        const dataP = await resP.json();
+        if(dataP) {
+            document.getElementById('pList').innerHTML = Object.keys(dataP).map(key => `
+                <tr>
+                    <td><img src="${dataP[key].image}" width="40" height="40" style="border-radius:5px"></td>
+                    <td>${dataP[key].name}</td>
+                    <td>৳${dataP[key].price}</td>
+                    <td>
+                        <button class="btn-edit" onclick="editItem('${key}')">Edit</button>
+                        <button class="btn-del" onclick="delItem('products','${key}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        const resO = await fetch(`${dbURL}/orders.json`);
+        const dataO = await resO.json();
+        if(dataO) {
+            document.getElementById('oList').innerHTML = Object.keys(dataO).map(key => `
+                <tr>
+                    <td>${dataO[key].customer}</td>
+                    <td>${dataO[key].phone}</td>
+                    <td><b>${dataO[key].product}</b></td>
+                    <td style="font-size:12px">${dataO[key].address}</td>
+                    <td><button style="background:#27ae60" onclick="delItem('orders','${key}')">Complete</button></td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    async function editItem(key) {
+        const res = await fetch(`${dbURL}/products/${key}.json`);
+        const p = await res.json();
+        document.getElementById('pn').value = p.name;
+        document.getElementById('pp').value = p.price;
+        document.getElementById('po').value = p.offer || "";
+        document.getElementById('pc').value = p.category;
+        document.getElementById('pi').value = p.image;
+        document.getElementById('editKey').value = key;
+        document.getElementById('mainBtn').innerText = "Update Product";
+        document.getElementById('formTitle').innerText = "পণ্য এডিট করুন";
+        window.scrollTo(0,0);
+    }
+
+    async function delItem(path, key) {
+        if(confirm("Confirm Delete?")) {
+            await fetch(`${dbURL}/${path}/${key}.json`, { method: 'DELETE' });
+            location.reload();
+        }
+    }
+
+    window.onload = loadData;
+</script>
+</body>
+</html>
