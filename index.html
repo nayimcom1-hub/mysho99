@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopBD - Cloud Shopping</title>
+    <title>MonKutir - Cloud Shopping</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     
@@ -39,6 +39,8 @@
         .img-container { width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
         .product-card img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
+        .price-tag { font-size: 18px; color: #e74c3c; font-weight: bold; margin-bottom: 10px; }
+        .product-name { font-size: 15px; font-weight: 600; margin-bottom: 8px; height: 40px; overflow: hidden; }
         .buy-btn { background: #27ae60; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
 
         @media (max-width: 600px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -82,7 +84,7 @@
             <input type="text" id="uName" placeholder="আপনার নাম">
         </div>
         <input type="email" id="uEmail" placeholder="ইমেইল">
-        <input type="password" id="uPass" placeholder="পাসওয়ার্ড">
+        <input type="password" id="uPass" placeholder="পাসওয়ার্ড">
         <button class="buy-btn" id="authSubmit" onclick="handleAuth()">Login</button>
         <span class="toggle-auth" id="toggleText" onclick="toggleAuthMode()">নতুন অ্যাকাউন্ট খুলুন (Sign Up)</span>
         <p onclick="closeM('authModal')" style="cursor:pointer; margin-top:10px; color:gray;">বন্ধ করুন</p>
@@ -92,15 +94,16 @@
 <div class="modal" id="shipModal">
     <div class="modal-content">
         <h2 id="pSel" style="color:#27ae60">অর্ডার</h2>
-        <input type="text" id="sName" placeholder="নাম">
+        <input type="text" id="sName" placeholder="আপনার নাম">
         <input type="text" id="sPhone" placeholder="ফোন নম্বর">
-        <input type="text" id="sAddr" placeholder="ঠিকানা">
+        <input type="text" id="sAddr" placeholder="পুরো ঠিকানা">
         <button class="buy-btn" onclick="submitOrder()">Confirm Order</button>
         <p onclick="closeM('shipModal')" style="cursor:pointer; margin-top:10px; color:gray;">বাতিল</p>
     </div>
 </div>
 
 <script>
+    // --- Firebase Configuration ---
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         databaseURL: "https://barrahms-app-default-rtdb.firebaseio.com",
@@ -113,13 +116,15 @@
 
     let allP = [];
     let isLoginMode = true;
+    let selectedItemName = ""; // অর্ডারের জন্য পণ্যের নাম রাখার ভেরিয়েবল
     let currentUser = JSON.parse(localStorage.getItem('shopUser')) || null;
 
     function load() {
         if(currentUser) updateHeader();
         db.ref('products').on('value', (snap) => {
             const data = snap.val();
-            if(!data) { document.getElementById('display').innerHTML = "কোনো পণ্য নেই!"; return; }
+            const displayDiv = document.getElementById('display');
+            if(!data) { displayDiv.innerHTML = "কোনো পণ্য নেই!"; return; }
             allP = Object.keys(data).map(key => ({...data[key], id: key}));
             render(allP);
         });
@@ -136,7 +141,6 @@
     }
 
     // --- Authentication Logic ---
-
     function toggleAuthMode() {
         isLoginMode = !isLoginMode;
         document.getElementById('authTitle').innerText = isLoginMode ? "Login" : "Sign Up";
@@ -150,21 +154,19 @@
         const pass = document.getElementById('uPass').value.trim();
         const name = document.getElementById('uName').value.trim();
 
-        if(!email || !pass) return alert("ইমেইল এবং পাসওয়ার্ড দিন!");
+        if(!email || !pass) return alert("ইমেইল এবং পাসওয়ার্ড দিন!");
+
+        const userId = email.replace(/[.$#[\]]/g, "_");
 
         if(!isLoginMode) {
-            // Sign Up Logic
             if(!name) return alert("আপনার নাম দিন!");
-            const userId = email.replace(/[.$#[\]]/g, "_"); // Firebase key-friendly email
             db.ref('users/' + userId).set({ name, email, pass }, (err) => {
                 if(!err) {
-                    alert("অ্যাকাউন্ট তৈরি হয়েছে! এখন লগইন করুন।");
+                    alert("অ্যাকাউন্ট তৈরি হয়েছে! এখন লগইন করুন।");
                     toggleAuthMode();
                 }
             });
         } else {
-            // Login Logic
-            const userId = email.replace(/[.$#[\]]/g, "_");
             db.ref('users/' + userId).once('value', (snap) => {
                 const userData = snap.val();
                 if(userData && userData.pass === pass) {
@@ -173,7 +175,7 @@
                     alert("লগইন সফল!");
                     location.reload();
                 } else {
-                    alert("ভুল ইমেইল বা পাসওয়ার্ড!");
+                    alert("ভুল ইমেইল বা পাসওয়ার্ড!");
                 }
             });
         }
@@ -182,18 +184,57 @@
     function updateHeader() {
         document.getElementById('authBox').innerHTML = `
             <div class="auth-display">
-                <span>${currentUser.name}</span>
+                <span>👤 ${currentUser.name}</span>
                 <button class="signout-btn" onclick="signOut()">Sign Out</button>
             </div>`;
     }
 
     function signOut() {
         localStorage.removeItem('shopUser');
-        alert("সাইন-আউট করা হয়েছে।");
+        alert("সাইন-আউট করা হয়েছে।");
         location.reload();
     }
 
-    // --- Other Functions (Search, Filter, Order) ---
+    // --- Order Logic ---
+    function buy(name) {
+        if(!currentUser) return openM('authModal');
+        selectedItemName = name; // পণ্য সিলেক্ট করা হলো
+        document.getElementById('pSel').innerText = name;
+        openM('shipModal');
+    }
+
+    function submitOrder() {
+        const name = document.getElementById('sName').value.trim();
+        const phone = document.getElementById('sPhone').value.trim();
+        const addr = document.getElementById('sAddr').value.trim();
+
+        if(!name || !phone || !addr) return alert("সব তথ্য পূরণ করুন!");
+
+        const orderData = {
+            customerName: name,
+            customerPhone: phone,
+            address: addr,
+            product: selectedItemName,
+            userEmail: currentUser.email,
+            orderDate: new Date().toLocaleString()
+        };
+
+        db.ref('orders').push(orderData)
+            .then(() => {
+                alert("আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে!");
+                closeM('shipModal');
+                // ফিল্ডগুলো খালি করা
+                document.getElementById('sName').value = "";
+                document.getElementById('sPhone').value = "";
+                document.getElementById('sAddr').value = "";
+            })
+            .catch((err) => {
+                alert("অর্ডার করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+                console.error(err);
+            });
+    }
+
+    // --- Utility Functions ---
     function search() {
         let v = document.getElementById('srch').value.toLowerCase();
         render(allP.filter(p => p.name.toLowerCase().includes(v)));
@@ -205,14 +246,9 @@
         render(category === 'all' ? allP : allP.filter(p => p.category === category));
     }
 
-    function buy(name) {
-        if(!currentUser) return openM('authModal');
-        document.getElementById('pSel').innerText = name;
-        openM('shipModal');
-    }
+    function openM(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeM(id) { document.getElementById(id).style.display = 'none'; }
 
-    function openM(id) { document.getElementById(id).style.display='flex'; }
-    function closeM(id) { document.getElementById(id).style.display='none'; }
     window.onload = load;
 </script>
 </body>
