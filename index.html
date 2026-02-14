@@ -37,62 +37,32 @@
     
     /* মোবাইল রেসপন্সিভ ডিজাইন */
 @media (max-width: 600px) {
-    /* ১. সার্চ বার ছোট করা */
-    .search-bar-section input {
-        width: 90%;
-        font-size: 14px;
-    }
-
-    /* ২. ক্যাটাগরি বাটনগুলো স্ক্রলযোগ্য করা */
-    .categories-sec {
-        display: flex;
-        overflow-x: auto;
-        white-space: nowrap;
-        padding: 10px;
-        gap: 5px;
-        -webkit-overflow-scrolling: touch;
-    }
-    .cat-btn {
-        flex: 0 0 auto; /* বাটনগুলো যেন চ্যাপ্টা না হয়ে যায় */
-    }
-
-    /* ৩. গ্রিড সিস্টেম: প্রতি লাইনে ২টি পণ্য */
     .product-grid {
-        grid-template-columns: repeat(2, 1fr); /* ২ কলাম */
-        gap: 10px; /* গ্যাপ কমানো হয়েছে */
-        padding: 10px;
+        /* ৫টি পণ্য দেখানোর জন্য 'repeat(5, 1fr)' দিন */
+        grid-template-columns: repeat(5, 1fr); 
+        gap: 5px; /* গ্যাপ একদম কমিয়ে দিতে হবে */
+        padding: 5px;
     }
 
-    /* ৪. কার্ডের ভেতরের ডিজাইন মোবাইলের জন্য ছোট করা */
-    .product-card {
-        padding: 10px;
-        border-radius: 10px;
-    }
-
+    /* ইমেজের হাইট অবশ্যই কমাতে হবে নতুবা স্ক্রিন ভরে যাবে */
     .img-container {
-        height: 140px; /* মোবাইলে ইমেজ বক্সের হাইট কিছুটা কমানো */
+        height: 60px; 
     }
 
     .product-name {
-        font-size: 14px;
-        height: 40px; /* নাম বড় হলে যেন ভেঙে না যায় */
-        overflow: hidden;
+        font-size: 10px; /* লেখা অনেক ছোট করতে হবে */
+        height: 30px;
     }
 
     .current-price {
-        font-size: 16px;
-    }
-
-    .old-price {
         font-size: 11px;
     }
 
     .buy-now-btn {
-        padding: 8px;
-        font-size: 13px;
+        padding: 5px;
+        font-size: 9px;
     }
 }
-    
     </style>
 </head>
 <body>
@@ -223,3 +193,4 @@
 </script>
 </body>
 </html>
+
