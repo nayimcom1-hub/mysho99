@@ -4,9 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShopBD - Cloud Shopping</title>
+   
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     
+    <div class="logo-area" onclick="location.reload()">
+        <img src="https://i.postimg.cc/G2myy6v4/gfgefyhyhh.png" alt="Logo" class="shop-logo">
+        <div class="logo-text">Shop<span>BD</span></div>
+    </div>
+    
+    <div class="auth-area" id="authBox">
+        <button class="btn login-btn" onclick="openM('authModal')">Login</button>
+    </div>
     <style>
         /* আপনার দেওয়া CSS এখানে থাকবে */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
@@ -212,6 +221,7 @@
 </script>
 </body>
 </html>
+
 
 
 
