@@ -13,20 +13,20 @@
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 30px; }
         h2 { color: #1e293b; margin-bottom: 20px; border-left: 5px solid #3498db; padding-left: 10px; }
         
-        /* Grid Layout for Inputs */
         .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
         input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; }
         
         .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
         .btn-save { background: #3498db; width: 100%; margin-top: 15px; font-size: 16px; }
+        .btn-update { background: #f39c12; width: 100%; margin-top: 15px; font-size: 16px; }
         .btn-del { background: #e74c3c; padding: 6px 12px; font-size: 12px; }
+        .btn-edit { background: #f39c12; padding: 6px 12px; font-size: 12px; margin-right: 5px; }
         .btn-confirm { background: #27ae60; padding: 6px 12px; font-size: 12px; margin-right: 5px; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         th { background: #334155; color: white; }
         .img-preview { width: 45px; height: 45px; object-fit: cover; border-radius: 5px; }
-        
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; background: #e2e8f0; }
     </style>
 </head>
@@ -36,9 +36,8 @@
     
     <div class="card">
         <h2 id="formTitle">নতুন পণ্য যোগ করুন</h2>
-        <input type="hidden" id="editKey">
-        <div class="input-grid">
-            <input type="text" id="pn" placeholder="পণ্যর নাম (যেমন: শার্ট)">
+        <input type="hidden" id="editKey"> <div class="input-grid">
+            <input type="text" id="pn" placeholder="পণ্যর নাম">
             <input type="number" id="pp" placeholder="আসল দাম (৳)">
             <input type="number" id="po" placeholder="অফার দাম (৳)">
             <select id="pc">
@@ -47,30 +46,24 @@
                 <option value="Gadget">Gadget</option>
             </select>
             <input type="text" id="pi" placeholder="মেইন ছবির URL">
-            <input type="text" id="pi1" placeholder="অতিরিক্ত ছবি ১ এর URL">
-            <input type="text" id="pi2" placeholder="অতিরিক্ত ছবি ২ এর URL">
-            <input type="text" id="pi3" placeholder="অতিরিক্ত ছবি ৩ এর URL">
+            <input type="text" id="pi1" placeholder="অতিরিক্ত ছবি ১">
+            <input type="text" id="pi2" placeholder="অতিরিক্ত ছবি ২">
+            <input type="text" id="pi3" placeholder="অতিরিক্ত ছবি ৩">
             <input type="text" id="ps" placeholder="সাইজ (M, L, XL)">
             <input type="text" id="pcol" placeholder="কালার (Red, Blue)">
         </div>
         <button class="btn btn-save" id="mainBtn" onclick="saveData()">Update Cloud Storage</button>
+        <button class="btn btn-del" id="cancelBtn" style="display:none; margin-top:10px; width:100%;" onclick="resetForm()">Cancel Editing</button>
     </div>
 
     <div class="card">
-        <h2 style="border-color: #27ae60;">অর্ডার রিকোয়েস্ট (New Orders)</h2>
+        <h2 style="border-color: #27ae60;">অর্ডার রিকোয়েস্ট</h2>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
-                    <tr>
-                        <th>কাস্টমার</th>
-                        <th>ফোন ও ঠিকানা</th>
-                        <th>পণ্য (Size/Color)</th>
-                        <th>অ্যাকশন</th>
-                    </tr>
+                    <tr><th>কাস্টমার</th><th>পণ্য (Size/Color)</th><th>অ্যাকশন</th></tr>
                 </thead>
-                <tbody id="orderList">
-                    <tr><td colspan="4">অর্ডার লোড হচ্ছে...</td></tr>
-                </tbody>
+                <tbody id="orderList"></tbody>
             </table>
         </div>
     </div>
@@ -78,7 +71,7 @@
     <div class="card">
         <h2 style="border-color: #f39c12;">স্টক লিস্ট (Inventory)</h2>
         <div style="overflow-x: auto;">
-            <table id="pTable">
+            <table>
                 <thead>
                     <tr><th>ছবি</th><th>নাম</th><th>দাম</th><th>অ্যাকশন</th></tr>
                 </thead>
@@ -89,6 +82,7 @@
 </div>
 
 <script>
+    // --- Firebase Config ---
     const firebaseConfig = {
         apiKey: "AIzaSyCkYMVn0Jh4Oo8Mgm8WyVAOVe65lSLGeks",
         databaseURL: "https://barrahms-app-default-rtdb.firebaseio.com",
@@ -97,7 +91,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // পাসওয়ার্ড প্রোটেকশন
     window.onload = function() {
         let pw = prompt("Admin Password:");
         if(pw === "1234") {
@@ -105,98 +98,103 @@
             fetchProducts();
             fetchOrders();
         } else {
-            document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px;'>Access Denied!</h1>";
+            document.body.innerHTML = "<h1>Access Denied</h1>";
         }
     };
 
-    // প্রোডাক্ট সেভ ফাংশন
+    // এডিট করার জন্য ডাটা ইনপুট বক্সে নিয়ে আসা
+    function editProduct(id) {
+        db.ref('products/' + id).once('value', (snap) => {
+            const p = snap.val();
+            document.getElementById('editKey').value = id;
+            document.getElementById('pn').value = p.name;
+            document.getElementById('pp').value = p.price;
+            document.getElementById('po').value = p.offer || "";
+            document.getElementById('pc').value = p.category;
+            document.getElementById('pi').value = p.image;
+            
+            // অতিরিক্ত ছবি সেট করা
+            const extras = p.extraImages ? p.extraImages.split(',') : [];
+            document.getElementById('pi1').value = extras[0] || "";
+            document.getElementById('pi2').value = extras[1] || "";
+            document.getElementById('pi3').value = extras[2] || "";
+            
+            document.getElementById('ps').value = p.sizes || "";
+            document.getElementById('pcol').value = p.colors || "";
+
+            // বাটন পরিবর্তন করা
+            document.getElementById('formTitle').innerText = "পণ্য এডিট করুন";
+            document.getElementById('mainBtn').innerText = "Update Now";
+            document.getElementById('mainBtn').className = "btn btn-update";
+            document.getElementById('cancelBtn').style.display = "block";
+            window.scrollTo(0,0);
+        });
+    }
+
+    function resetForm() {
+        location.reload();
+    }
+
     function saveData() {
+        const id = document.getElementById('editKey').value;
         const n = document.getElementById('pn').value, p = document.getElementById('pp').value,
               o = document.getElementById('po').value, c = document.getElementById('pc').value,
-              i = document.getElementById('pi').value, key = document.getElementById('editKey').value,
-              i1 = document.getElementById('pi1').value, i2 = document.getElementById('pi2').value,
-              i3 = document.getElementById('pi3').value,
+              i = document.getElementById('pi').value, i1 = document.getElementById('pi1').value, 
+              i2 = document.getElementById('pi2').value, i3 = document.getElementById('pi3').value,
               size = document.getElementById('ps').value, col = document.getElementById('pcol').value;
 
-        if(!n || !p || !i) return alert("মেইন তথ্যগুলো পূরণ করুন!");
-
-        // ৩টি ইমেজকে কমা দিয়ে যোগ করা
         let extraImgArr = [];
-        if(i1) extraImgArr.push(i1);
-        if(i2) extraImgArr.push(i2);
-        if(i3) extraImgArr.push(i3);
+        if(i1) extraImgArr.push(i1); if(i2) extraImgArr.push(i2); if(i3) extraImgArr.push(i3);
         let extraImgs = extraImgArr.join(',');
 
-        const productData = { 
-            name: n, price: p, offer: o, category: c, 
-            image: i, extraImages: extraImgs, 
-            sizes: size, colors: col 
-        };
+        const productData = { name: n, price: p, offer: o, category: c, image: i, extraImages: extraImgs, sizes: size, colors: col };
 
-        if(key) {
-            db.ref('products/' + key).update(productData).then(() => location.reload());
+        if(id) {
+            db.ref('products/' + id).update(productData).then(() => resetForm());
         } else {
-            db.ref('products').push(productData).then(() => location.reload());
+            db.ref('products').push(productData).then(() => resetForm());
         }
     }
 
-    // প্রোডাক্ট লিস্ট ফেচ
     function fetchProducts() {
         db.ref('products').on('value', (snap) => {
-            const data = snap.val();
             let html = "";
-            if(data) {
-                Object.keys(data).forEach(id => {
-                    let p = data[id];
-                    html += `<tr>
-                        <td><img src="${p.image}" class="img-preview"></td>
-                        <td>${p.name}</td>
-                        <td>৳${p.price}</td>
-                        <td><button class="btn btn-del" onclick="deleteItem('products', '${id}')">Delete</button></td>
-                    </tr>`;
-                });
-            }
+            snap.forEach(child => {
+                let p = child.val();
+                html += `<tr>
+                    <td><img src="${p.image}" class="img-preview"></td>
+                    <td>${p.name}</td>
+                    <td>৳${p.price}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editProduct('${child.key}')">Edit</button>
+                        <button class="btn btn-del" onclick="deleteItem('products', '${child.key}')">Del</button>
+                    </td>
+                </tr>`;
+            });
             document.getElementById('pList').innerHTML = html;
         });
     }
 
-    // অর্ডার রিকোয়েস্ট ফেচ
     function fetchOrders() {
         db.ref('orders').on('value', (snap) => {
-            const data = snap.val();
             let html = "";
-            if(data) {
-                Object.keys(data).forEach(id => {
-                    let o = data[id];
-                    html += `<tr>
-                        <td><b>${o.customer}</b><br><small>${o.date || ''}</small></td>
-                        <td>${o.phone}<br><small>${o.address}</small></td>
-                        <td>${o.product}<br>
-                            <span class="badge">S: ${o.size || 'N/A'}</span> 
-                            <span class="badge">C: ${o.color || 'N/A'}</span>
-                        </td>
-                        <td>
-                            <button class="btn btn-confirm" onclick="confirmOrder('${id}')">Confirm</button>
-                            <button class="btn btn-del" onclick="deleteItem('orders', '${id}')">Delete</button>
-                        </td>
-                    </tr>`;
-                });
-            } else {
-                html = "<tr><td colspan='4' style='text-align:center;'>কোনো নতুন অর্ডার নেই।</td></tr>";
-            }
+            snap.forEach(child => {
+                let o = child.val();
+                html += `<tr>
+                    <td><b>${o.customer}</b><br><small>${o.phone}</small></td>
+                    <td>${o.product}<br><span class="badge">S: ${o.size} | C: ${o.color}</span></td>
+                    <td>
+                        <button class="btn btn-confirm" onclick="alert('Confirmed')">Confirm</button>
+                        <button class="btn btn-del" onclick="deleteItem('orders', '${child.key}')">Del</button>
+                    </td>
+                </tr>`;
+            });
             document.getElementById('orderList').innerHTML = html;
         });
     }
 
-    function confirmOrder(id) {
-        alert("অর্ডারটি কনফার্ম করা হয়েছে এবং কাস্টমারকে জানানো হবে!");
-        // আপনি চাইলে এখানে অর্ডারটি 'orders' থেকে 'confirmed_orders' এ মুভ করতে পারেন।
-    }
-
     function deleteItem(path, id) {
-        if(confirm("আপনি কি নিশ্চিত এটি মুছতে চান?")) {
-            db.ref(path + '/' + id).remove();
-        }
+        if(confirm("Are you sure?")) db.ref(path + '/' + id).remove();
     }
 </script>
 </body>
