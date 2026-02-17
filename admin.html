@@ -2,91 +2,121 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Store Control Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Store - Advanced Admin Control</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: #f0f2f5; padding: 20px; }
-        .admin-container { max-width: 1200px; margin: auto; display: none; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 30px; }
-        h2 { color: #1e293b; margin-bottom: 20px; border-left: 5px solid #3498db; padding-left: 10px; }
+        :root { --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --dark: #0f172a; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f8fafc; color: #334155; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; display: none; }
         
-        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
-        input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; }
+        /* Dashboard Stats */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-box { background: white; padding: 20px; border-radius: 12px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-box h4 { font-size: 14px; color: #64748b; text-transform: uppercase; }
+        .stat-box p { font-size: 24px; font-weight: bold; color: var(--dark); }
+
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        h2 { font-size: 18px; margin-bottom: 20px; color: var(--dark); display: flex; align-items: center; gap: 10px; }
         
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-save { background: #3498db; width: 100%; margin-top: 15px; font-size: 16px; }
-        .btn-update { background: #f39c12; width: 100%; margin-top: 15px; font-size: 16px; }
-        .btn-del { background: #e74c3c; padding: 6px 12px; font-size: 12px; }
-        .btn-edit { background: #f39c12; padding: 6px 12px; font-size: 12px; margin-right: 5px; }
-        .btn-confirm { background: #27ae60; padding: 6px 12px; font-size: 12px; margin-right: 5px; }
+        /* Form Styling */
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; }
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #475569; }
+        input, select { padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; outline: none; width: 100%; transition: 0.3s; }
+        input:focus { border-color: var(--primary); }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background: #334155; color: white; }
-        .img-preview { width: 45px; height: 45px; object-fit: cover; border-radius: 5px; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; background: #e2e8f0; }
+        /* Buttons */
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; transition: 0.2s; font-size: 13px; }
+        .btn-save { background: var(--primary); width: 100%; padding: 15px; font-size: 15px; margin-top: 10px; }
+        .btn-edit { background: #f59e0b; }
+        .btn-del { background: var(--danger); }
+        .btn-view { background: var(--dark); }
+        .btn-cancel { background: #64748b; margin-top: 10px; width: 100%; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #f1f5f9; padding: 15px; text-align: left; font-size: 13px; color: #64748b; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .img-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; }
+
+        /* Modal Details */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; max-width: 500px; margin: 60px auto; padding: 30px; border-radius: 20px; position: relative; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; }
+        .detail-row b { color: #64748b; }
     </style>
 </head>
 <body>
 
-<div class="admin-container" id="adminMain">
-    
-    <div class="card">
-        <h2 id="formTitle">নতুন পণ্য যোগ করুন</h2>
-        <input type="hidden" id="editKey"> <div class="input-grid">
-            <input type="text" id="pn" placeholder="পণ্যর নাম">
-            <input type="number" id="pp" placeholder="আসল দাম (৳)">
-            <input type="number" id="po" placeholder="অফার দাম (৳)">
-            <select id="pc">
-                <option value="Electronics">Electronics</option>
-                <option value="Fashion">Fashion</option>
-                <option value="Gadget">Gadget</option>
-            </select>
-            <input type="text" id="pi" placeholder="মেইন ছবির URL">
-            <input type="text" id="pi1" placeholder="অতিরিক্ত ছবি ১">
-            <input type="text" id="pi2" placeholder="অতিরিক্ত ছবি ২">
-            <input type="text" id="pi3" placeholder="অতিরিক্ত ছবি ৩">
-            <input type="text" id="ps" placeholder="সাইজ (M, L, XL)">
-            <input type="text" id="pcol" placeholder="কালার (Red, Blue)">
-        </div>
-        <button class="btn btn-save" id="mainBtn" onclick="saveData()">Update Cloud Storage</button>
-        <button class="btn btn-del" id="cancelBtn" style="display:none; margin-top:10px; width:100%;" onclick="resetForm()">Cancel Editing</button>
+<div id="viewModal" class="modal">
+    <div class="modal-content">
+        <h2 style="justify-content: center;">Customer Order Details</h2>
+        <div id="modalData"></div>
+        <button class="btn btn-cancel" onclick="document.getElementById('viewModal').style.display='none'">Close Window</button>
+    </div>
+</div>
+
+<div class="container" id="adminMain">
+    <div class="stats-row">
+        <div class="stat-box"><h4>Live Inventory</h4><p id="totalP">0</p></div>
+        <div class="stat-box" style="border-color: var(--success);"><h4>New Orders</h4><p id="totalO">0</p></div>
     </div>
 
     <div class="card">
-        <h2 style="border-color: #27ae60;">অর্ডার রিকোয়েস্ট</h2>
-        <div style="overflow-x: auto;">
+        <h2 id="formTitle">📦 Product Management (Add/Edit)</h2>
+        <input type="hidden" id="editKey">
+        <div class="input-grid">
+            <div class="input-group"><label>Product Name</label><input type="text" id="pn"></div>
+            <div class="input-group"><label>Price (৳)</label><input type="number" id="pp"></div>
+            <div class="input-group"><label>Category</label>
+                <select id="pc">
+                    <option value="Gadget">Gadget</option>
+                    <option value="Fashion">Fashion</option>
+                    <option value="Electronics">Electronics</option>
+                </select>
+            </div>
+            <div class="input-group"><label>Main Image URL</label><input type="text" id="pi"></div>
+            <div class="input-group"><label>Extra Image 1</label><input type="text" id="pi1"></div>
+            <div class="input-group"><label>Extra Image 2</label><input type="text" id="pi2"></div>
+            <div class="input-group"><label>Extra Image 3</label><input type="text" id="pi3"></div>
+            <div class="input-group"><label>Sizes (M, L, XL)</label><input type="text" id="ps"></div>
+            <div class="input-group"><label>Colors (Red, Black)</label><input type="text" id="pcol"></div>
+        </div>
+        <button class="btn btn-save" id="mainBtn" onclick="saveProduct()">🚀 Update Database</button>
+        <button class="btn btn-cancel" id="cancelEdit" style="display:none;" onclick="location.reload()">Cancel Editing</button>
+    </div>
+
+    <div class="card">
+        <h2>🛍️ Pending Order Requests</h2>
+        <div class="table-container">
             <table>
-               <thead>
-              <tr>
-                 <th>কাস্টমার ও ঠিকানা</th>
-               <th>পণ্য (Size/Color)</th>
-              <th>অ্যাকশন</th>
-               </tr>
-           </thead>
-             <tbody id="orderList"></tbody>
+                <thead>
+                    <tr><th>Customer</th><th>Product</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="orderList"></tbody>
             </table>
         </div>
     </div>
 
     <div class="card">
-        <h2 style="border-color: #f39c12;">স্টক লিস্ট (Inventory)</h2>
-        <div style="overflow-x: auto;">
+        <h2>🗄️ Stock Inventory List</h2>
+        <div class="table-container">
             <table>
                 <thead>
-                    <tr><th>ছবি</th><th>নাম</th><th>দাম</th><th>অ্যাকশন</th></tr>
+                    <tr><th>Image</th><th>Product Info</th><th>Price</th><th>Actions</th></tr>
                 </thead>
-                <tbody id="pList"></tbody>
+                <tbody id="stockList"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-    // --- Firebase Config ---
     const firebaseConfig = {
         apiKey: "AIzaSyCkYMVn0Jh4Oo8Mgm8WyVAOVe65lSLGeks",
         databaseURL: "https://barrahms-app-default-rtdb.firebaseio.com",
@@ -96,134 +126,122 @@
     const db = firebase.database();
 
     window.onload = function() {
-        let pw = prompt("Admin Password:");
+        let pw = prompt("Enter Password:");
         if(pw === "1234") {
             document.getElementById('adminMain').style.display = 'block';
-            fetchProducts();
-            fetchOrders();
-        } else {
-            document.body.innerHTML = "<h1>Access Denied</h1>";
-        }
+            syncData();
+        } else { location.reload(); }
     };
 
-    // এডিট করার জন্য ডাটা ইনপুট বক্সে নিয়ে আসা
-    function editProduct(id) {
+    function syncData() {
+        fetchProducts();
+        fetchOrders();
+    }
+
+    // --- Product Operations ---
+    function saveProduct() {
+        const id = document.getElementById('editKey').value;
+        const data = {
+            name: document.getElementById('pn').value,
+            price: document.getElementById('pp').value,
+            category: document.getElementById('pc').value,
+            image: document.getElementById('pi').value,
+            img1: document.getElementById('pi1').value,
+            img2: document.getElementById('pi2').value,
+            img3: document.getElementById('pi3').value,
+            sizes: document.getElementById('ps').value,
+            colors: document.getElementById('pcol').value
+        };
+
+        if(!data.name || !data.price || !data.image) return alert("Required fields missing!");
+
+        const ref = id ? db.ref('products/' + id) : db.ref('products').push();
+        ref.set(data).then(() => {
+            alert("Success!");
+            location.reload();
+        });
+    }
+
+    function fetchProducts() {
+        db.ref('products').on('value', (snap) => {
+            let html = "", count = 0;
+            snap.forEach(child => {
+                let p = child.val(); count++;
+                html += `<tr>
+                    <td><img src="${p.image}" class="img-thumb"></td>
+                    <td><b>${p.name}</b><br><small>${p.category}</small></td>
+                    <td>৳${p.price}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editMode('${child.key}')">Edit</button>
+                        <button class="btn btn-del" onclick="deleteItem('products', '${child.key}')">Del</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('stockList').innerHTML = html;
+            document.getElementById('totalP').innerText = count;
+        });
+    }
+
+    function editMode(id) {
         db.ref('products/' + id).once('value', (snap) => {
             const p = snap.val();
             document.getElementById('editKey').value = id;
             document.getElementById('pn').value = p.name;
             document.getElementById('pp').value = p.price;
-            document.getElementById('po').value = p.offer || "";
             document.getElementById('pc').value = p.category;
             document.getElementById('pi').value = p.image;
-            
-            // অতিরিক্ত ছবি সেট করা
-            const extras = p.extraImages ? p.extraImages.split(',') : [];
-            document.getElementById('pi1').value = extras[0] || "";
-            document.getElementById('pi2').value = extras[1] || "";
-            document.getElementById('pi3').value = extras[2] || "";
-            
+            document.getElementById('pi1').value = p.img1 || "";
+            document.getElementById('pi2').value = p.img2 || "";
+            document.getElementById('pi3').value = p.img3 || "";
             document.getElementById('ps').value = p.sizes || "";
             document.getElementById('pcol').value = p.colors || "";
-
-            // বাটন পরিবর্তন করা
-            document.getElementById('formTitle').innerText = "পণ্য এডিট করুন";
-            document.getElementById('mainBtn').innerText = "Update Now";
-            document.getElementById('mainBtn').className = "btn btn-update";
-            document.getElementById('cancelBtn').style.display = "block";
+            
+            document.getElementById('formTitle').innerText = "📝 Edit Product: " + p.name;
+            document.getElementById('mainBtn').innerText = "Apply Changes Now";
+            document.getElementById('cancelEdit').style.display = "block";
             window.scrollTo(0,0);
         });
     }
 
-    function resetForm() {
-        location.reload();
-    }
-
-    function saveData() {
-        const id = document.getElementById('editKey').value;
-        const n = document.getElementById('pn').value, p = document.getElementById('pp').value,
-              o = document.getElementById('po').value, c = document.getElementById('pc').value,
-              i = document.getElementById('pi').value, i1 = document.getElementById('pi1').value, 
-              i2 = document.getElementById('pi2').value, i3 = document.getElementById('pi3').value,
-              size = document.getElementById('ps').value, col = document.getElementById('pcol').value;
-
-        let extraImgArr = [];
-        if(i1) extraImgArr.push(i1); if(i2) extraImgArr.push(i2); if(i3) extraImgArr.push(i3);
-        let extraImgs = extraImgArr.join(',');
-
-        const productData = { name: n, price: p, offer: o, category: c, image: i, extraImages: extraImgs, sizes: size, colors: col };
-
-        if(id) {
-            db.ref('products/' + id).update(productData).then(() => resetForm());
-        } else {
-            db.ref('products').push(productData).then(() => resetForm());
-        }
-    }
-
-    function fetchProducts() {
-        db.ref('products').on('value', (snap) => {
-            let html = "";
+    // --- Order Operations ---
+    function fetchOrders() {
+        db.ref('orders').on('value', (snap) => {
+            let html = "", count = 0;
             snap.forEach(child => {
-                let p = child.val();
+                let o = child.val(); count++;
                 html += `<tr>
-                    <td><img src="${p.image}" class="img-preview"></td>
-                    <td>${p.name}</td>
-                    <td>৳${p.price}</td>
+                    <td><b>${o.customer}</b><br><small>${o.phone}</small></td>
+                    <td>${o.product}</td>
+                    <td><span style="color:var(--success)">Pending</span></td>
                     <td>
-                        <button class="btn btn-edit" onclick="editProduct('${child.key}')">Edit</button>
-                        <button class="btn btn-del" onclick="deleteItem('products', '${child.key}')">Del</button>
+                        <button class="btn btn-view" onclick="showOrder('${child.key}')">View</button>
+                        <button class="btn btn-del" onclick="deleteItem('orders', '${child.key}')">Del</button>
                     </td>
                 </tr>`;
             });
-            document.getElementById('pList').innerHTML = html;
+            document.getElementById('orderList').innerHTML = html;
+            document.getElementById('totalO').innerText = count;
         });
     }
 
-    function fetchOrders() {
-    db.ref('orders').on('value', (snap) => {
-        let html = "";
-        snap.forEach(child => {
-            let o = child.val();
-            // এখানে o.address আপনার ডেটাবেসের ফিল্ড নেম অনুযায়ী হতে হবে
-            let address = o.address ? o.address : "ঠিকানা দেওয়া নেই"; 
-            
-            html += `<tr>
-                <td>
-                    <b>${o.customer}</b><br>
-                    <small>${o.phone}</small><br>
-                    <small style="color: #555;">📍 ${address}</small>
-                </td>
-                <td>${o.product}<br><span class="badge">S: ${o.size} | C: ${o.color}</span></td>
-                <td>
-                    <button class="btn btn-edit" style="background:#34495e" onclick="viewCustomer('${child.key}')">View</button>
-                    <button class="btn btn-confirm" onclick="confirmOrder('${child.key}')">Confirm</button>
-                    <button class="btn btn-del" onclick="deleteItem('orders', '${child.key}')">Del</button>
-                </td>
-            </tr>`;
+    function showOrder(id) {
+        db.ref('orders/' + id).once('value', (snap) => {
+            const o = snap.val();
+            document.getElementById('modalData').innerHTML = `
+                <div class="detail-row"><b>Name:</b> <span>${o.customer}</span></div>
+                <div class="detail-row"><b>Phone:</b> <span>${o.phone}</span></div>
+                <div class="detail-row"><b>Address:</b> <span>${o.address || 'N/A'}</span></div>
+                <div class="detail-row"><b>Product:</b> <span>${o.product}</span></div>
+                <div class="detail-row"><b>Variant:</b> <span>Size: ${o.size || 'N/A'} | Color: ${o.color || 'N/A'}</span></div>
+                <div class="detail-row"><b>Price:</b> <span>৳${o.price || '0'}</span></div>
+            `;
+            document.getElementById('viewModal').style.display = 'block';
         });
-        document.getElementById('orderList').innerHTML = html;
-    });
-}
+    }
 
-// কাস্টমারের সব তথ্য দেখার জন্য নতুন ফাংশন
-function viewCustomer(id) {
-    db.ref('orders/' + id).once('value', (snap) => {
-        const o = snap.val();
-        alert(
-            "--- কাস্টমার ডিটেইলস ---\n\n" +
-            "নাম: " + o.customer + "\n" +
-            "ফোন: " + o.phone + "\n" +
-            "ঠিকানা: " + (o.address || "নেই") + "\n" +
-            "পণ্য: " + o.product + "\n" +
-            "সাইজ: " + o.size + " | কালার: " + o.color
-        );
-    });
-}
-
-function confirmOrder(id) {
-    alert("অর্ডারটি কনফার্ম করা হয়েছে!");
-    // এখানে চাইলে আপনি স্ট্যাটাস আপডেট করার কোড লিখতে পারেন
-}
+    function deleteItem(path, id) {
+        if(confirm("Permanently delete this?")) db.ref(path + '/' + id).remove();
+    }
 </script>
 </body>
 </html>
