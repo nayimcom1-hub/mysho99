@@ -50,25 +50,19 @@
         /* Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; padding: 15px; }
         .modal-content { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 850px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .close { position: absolute; top: 15px; right: 20px; font-size: 35px; cursor: pointer; color: #999; line-height: 1; }
+        .close { position: absolute; top: 15px; right: 20px; font-size: 35px; cursor: pointer; color: #999; }
         
-        /* Auth Form */
-        .auth-form { max-width: 400px; text-align: center; }
-        .auth-form input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; }
-        .auth-toggle { margin-top: 15px; font-size: 14px; color: #3498db; cursor: pointer; text-decoration: underline; }
-
-        /* Product Details Layout */
+        /* Product Details */
         .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; text-align: left; }
-        #mainDetailImg { width: 100%; height: 350px; object-fit: contain; background: #fff; border-radius: 15px; border: 1px solid #f0f0f0; }
-        .thumb-grid { display: flex; gap: 10px; margin-top: 15px; overflow-x: auto; padding: 5px; }
+        #mainDetailImg { width: 100%; height: 350px; object-fit: contain; border-radius: 15px; border: 1px solid #f0f0f0; }
+        .thumb-grid { display: flex; gap: 10px; margin-top: 15px; overflow-x: auto; }
         .thumb { width: 65px; height: 65px; border: 2px solid #eee; border-radius: 8px; cursor: pointer; object-fit: cover; }
         .thumb.active { border-color: #3498db; }
 
-        /* Selection Options */
+        /* Options */
         .opt-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-        .opt-box { padding: 8px 15px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; background: #fff; transition: 0.2s; }
-        .opt-box:hover { border-color: #3498db; }
-        .opt-box.selected { background: #3498db; color: white; border-color: #2980b9; font-weight: bold; }
+        .opt-box { padding: 8px 15px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .opt-box.selected { background: #3498db; color: white; font-weight: bold; }
 
         @media (max-width: 600px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
     </style>
@@ -97,17 +91,6 @@
     <div class="product-grid" id="display">লোড হচ্ছে...</div>
 </div>
 
-<div class="modal" id="authModal">
-    <div class="modal-content auth-form">
-        <span class="close" onclick="closeM('authModal')">&times;</span>
-        <h2 id="authTitle">Login</h2>
-        <input type="email" id="authEmail" placeholder="আপনার ইমেইল">
-        <input type="password" id="authPass" placeholder="পাসওয়ার্ড">
-        <button class="buy-btn" id="authBtn" onclick="handleAuth()">Login</button>
-        <p class="auth-toggle" id="authToggle" onclick="toggleAuth()">অ্যাকাউন্ট নেই? সাইন-আপ করুন</p>
-    </div>
-</div>
-
 <div class="modal" id="detModal">
     <div class="modal-content">
         <span class="close" onclick="closeM('detModal')">&times;</span>
@@ -121,12 +104,12 @@
                 <h2 id="detPrice" style="color:#e74c3c; margin-bottom:20px;"></h2>
                 
                 <div id="szArea" style="margin-bottom:15px; display:none;">
-                    <p><b>Size সিলেক্ট করুন:</b></p>
+                    <p><b>Size:</b></p>
                     <div class="opt-container" id="detSizes"></div>
                 </div>
                 
                 <div id="clArea" style="margin-bottom:20px; display:none;">
-                    <p><b>Color সিলেক্ট করুন:</b></p>
+                    <p><b>Color:</b></p>
                     <div class="opt-container" id="detColors"></div>
                 </div>
                 
@@ -137,19 +120,30 @@
 </div>
 
 <div class="modal" id="shipModal">
-    <div class="modal-content auth-form">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
         <span class="close" onclick="closeM('shipModal')">&times;</span>
         <h2 style="color:#27ae60">অর্ডার ফর্ম</h2>
-        <p id="orderSummary" style="margin: 10px 0; font-size: 14px; background: #f9f9f9; padding: 10px; border-radius: 5px;"></p>
-        <input type="text" id="sName" placeholder="আপনার পুরো নাম">
-        <input type="text" id="sPhone" placeholder="সচল ফোন নম্বর">
-        <input type="text" id="sAddr" placeholder="পুরো ঠিকানা">
+        <p id="orderSummary" style="margin: 10px 0; font-size: 13px; background: #f9f9f9; padding: 10px; border-radius: 5px;"></p>
+        <input type="text" id="sName" placeholder="আপনার নাম" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px;">
+        <input type="text" id="sPhone" placeholder="ফোন নম্বর" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px;">
+        <input type="text" id="sAddr" placeholder="পুরো ঠিকানা" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px;">
         <button class="buy-btn" onclick="submitFinalOrder()">অর্ডার নিশ্চিত করুন</button>
     </div>
 </div>
 
+<div class="modal" id="authModal">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <span class="close" onclick="closeM('authModal')">&times;</span>
+        <h2 id="authTitle">Login</h2>
+        <input type="email" id="authEmail" placeholder="Email" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px;">
+        <input type="password" id="authPass" placeholder="Password" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px;">
+        <button class="buy-btn" id="authBtn" onclick="handleAuth()">Login</button>
+        <p style="margin-top:15px; font-size:14px; color:#3498db; cursor:pointer;" onclick="toggleAuth()" id="authToggle">নতুন অ্যাকাউন্ট তৈরি করুন</p>
+    </div>
+</div>
+
 <script>
-    // --- Firebase Configuration ---
+    // --- Firebase Config ---
     const firebaseConfig = {
         apiKey: "AIzaSyCkYMVn0Jh4Oo8Mgm8WyVAOVe65lSLGeks",
         authDomain: "barrahms-app.firebaseapp.com",
@@ -162,26 +156,25 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    let allProducts = [];
-    let isLoginMode = true;
-    let selectedPName = "", selectedSize = "", selectedColor = "";
+    let allProducts = [], isLoginMode = true;
+    let selectedPName = "", selectedSize = "", selectedColor = "", selectedPrice = "";
 
-    // 1. Auth Status চেক
+    // Auth Change Listener
     auth.onAuthStateChanged(user => {
         const navAuth = document.getElementById('navAuth');
         if (user) {
             navAuth.innerHTML = `<span class="user-email">${user.email.split('@')[0]}</span>
                                 <button class="nav-btn logout-btn" onclick="auth.signOut()">Logout</button>`;
         } else {
-            navAuth.innerHTML = `<button class="nav-btn" onclick="openM('authModal')">Login / Sign Up</button>`;
+            navAuth.innerHTML = `<button class="nav-btn" onclick="openM('authModal')">Login</button>`;
         }
     });
 
-    // 2. পণ্য লোড করা
+    // Load Products
     function loadProducts() {
         db.ref('products').on('value', snap => {
             const data = snap.val();
-            if(!data) return;
+            if(!data) { document.getElementById('display').innerHTML = "কোন পণ্য পাওয়া যায়নি"; return; }
             allProducts = Object.keys(data).map(key => ({...data[key], id: key}));
             renderUI(allProducts);
         });
@@ -191,52 +184,42 @@
         document.getElementById('display').innerHTML = items.map(p => `
             <div class="product-card" onclick="showProductDetails('${p.id}')">
                 <div class="img-container"><img src="${p.image}"></div>
-                <div style="font-weight:600; height:42px; overflow:hidden;">${p.name}</div>
+                <div style="font-weight:600; font-size:14px; height:40px; overflow:hidden;">${p.name}</div>
                 <div class="price-tag">৳${p.offer || p.price}</div>
                 <button class="buy-btn">বিস্তারিত দেখুন</button>
             </div>`).join('');
     }
 
-    // 3. Login/Signup লজিক
-    function toggleAuth() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('authTitle').innerText = isLoginMode ? "Login" : "Sign Up";
-        document.getElementById('authBtn').innerText = isLoginMode ? "Login" : "Create Account";
-        document.getElementById('authToggle').innerText = isLoginMode ? "অ্যাকাউন্ট নেই? সাইন-আপ করুন" : "আগের অ্যাকাউন্ট আছে? লগইন করুন";
-    }
-
-    function handleAuth() {
-        const email = document.getElementById('authEmail').value, pass = document.getElementById('authPass').value;
-        if(!email || !pass) return alert("সব তথ্য দিন!");
-        if(isLoginMode) {
-            auth.signInWithEmailAndPassword(email, pass).then(() => { alert("লগইন সফল!"); closeM('authModal'); })
-            .catch(e => alert("ভুল ইমেইল বা পাসওয়ার্ড!"));
-        } else {
-            auth.createUserWithEmailAndPassword(email, pass).then(() => { alert("অ্যাকাউন্ট তৈরি হয়েছে!"); closeM('authModal'); })
-            .catch(e => alert(e.message));
-        }
-    }
-
-    // 4. পণ্যর বিস্তারিত ও সাইজ/কালার সিলেকশন
+    // Product Details & Extra Images Logic
     function showProductDetails(id) {
         const p = allProducts.find(i => i.id === id);
         selectedPName = p.name;
-        selectedSize = ""; selectedColor = ""; // রিসেট
+        selectedPrice = p.offer || p.price;
+        selectedSize = ""; selectedColor = "";
 
         document.getElementById('detName').innerText = p.name;
-        document.getElementById('detPrice').innerText = "৳" + (p.offer || p.price);
+        document.getElementById('detPrice').innerText = "৳" + selectedPrice;
         document.getElementById('mainDetailImg').src = p.image;
 
-        // ইমেজ থাম্বনেইল
+        // --- অতিরিক্ত ছবি থাম্বনেইল হিসেবে সেট করা ---
         let imgs = [p.image];
-        if(p.extraImages) imgs = imgs.concat(p.extraImages.split(',').map(s => s.trim()));
-        document.getElementById('thumbList').innerHTML = imgs.map(url => `<img src="${url}" class="thumb" onclick="document.getElementById('mainDetailImg').src='${url}'">`).join('');
+        if(p.img1) imgs.push(p.img1);
+        if(p.img2) imgs.push(p.img2);
+        if(p.img3) imgs.push(p.img3);
 
-        // সাইজ ও কালার অপশন রেন্ডার
+        document.getElementById('thumbList').innerHTML = imgs.map(url => `
+            <img src="${url}" class="thumb" onclick="changeMainImg(this, '${url}')">
+        `).join('');
+
         renderOptions('detSizes', p.sizes, 'szArea', 'size');
         renderOptions('detColors', p.colors, 'clArea', 'color');
-
         openM('detModal');
+    }
+
+    function changeMainImg(el, url) {
+        document.getElementById('mainDetailImg').src = url;
+        document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
     }
 
     function renderOptions(divId, data, areaId, type) {
@@ -263,44 +246,55 @@
         }
     }
 
-    // 5. অর্ডার চেক ও সাবমিট
+    // Order Flow
     function checkOrderFlow() {
         const hasSize = document.getElementById('szArea').style.display !== 'none';
         const hasColor = document.getElementById('clArea').style.display !== 'none';
 
-        if((hasSize && !selectedSize) || (hasColor && !selectedColor)) {
-            return alert("অনুগ্রহ করে সাইজ এবং কালার সিলেক্ট করুন!");
-        }
+        if((hasSize && !selectedSize) || (hasColor && !selectedColor)) return alert("সাইজ এবং কালার সিলেক্ট করুন!");
 
         if(!auth.currentUser) {
             alert("অর্ডার করতে আগে লগইন করুন!");
             closeM('detModal'); openM('authModal');
         } else {
             closeM('detModal');
-            document.getElementById('orderSummary').innerText = `পণ্য: ${selectedPName}\nসাইজ: ${selectedSize} | কালার: ${selectedColor}`;
+            document.getElementById('orderSummary').innerText = `পণ্য: ${selectedPName}\nসাইজ: ${selectedSize} | কালার: ${selectedColor}\nমোট: ৳${selectedPrice}`;
             openM('shipModal');
         }
     }
 
     function submitFinalOrder() {
         const n = document.getElementById('sName').value, ph = document.getElementById('sPhone').value, ad = document.getElementById('sAddr').value;
-        if(!n || !ph || !ad) return alert("সব তথ্য পূরণ করুন!");
+        if(!n || !ph || !ad) return alert("সব তথ্য দিন!");
 
         db.ref('orders').push({
             customer: n, phone: ph, address: ad,
-            product: selectedPName, size: selectedSize, color: selectedColor,
+            product: selectedPName, size: selectedSize, color: selectedColor, price: selectedPrice,
             email: auth.currentUser.email, date: new Date().toLocaleString()
         }).then(() => {
-            alert("অর্ডার সফলভাবে জমা হয়েছে!");
+            alert("অর্ডার সফল হয়েছে!");
             closeM('shipModal');
         });
     }
 
-    // ফিল্টার ও সার্চ
+    // Auth, Search, Filter
+    function toggleAuth() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('authTitle').innerText = isLoginMode ? "Login" : "Sign Up";
+        document.getElementById('authBtn').innerText = isLoginMode ? "Login" : "Create Account";
+    }
+
+    function handleAuth() {
+        const e = document.getElementById('authEmail').value, p = document.getElementById('authPass').value;
+        if(isLoginMode) auth.signInWithEmailAndPassword(e, p).then(()=>closeM('authModal')).catch(err=>alert("Error!"));
+        else auth.createUserWithEmailAndPassword(e, p).then(()=>closeM('authModal')).catch(err=>alert(err.message));
+    }
+
     function search() {
         let v = document.getElementById('srch').value.toLowerCase();
         renderUI(allProducts.filter(p => p.name.toLowerCase().includes(v)));
     }
+
     function filterCat(cat, btn) {
         document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
