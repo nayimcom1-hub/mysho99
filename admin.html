@@ -60,10 +60,14 @@
         <h2 style="border-color: #27ae60;">অর্ডার রিকোয়েস্ট</h2>
         <div style="overflow-x: auto;">
             <table>
-                <thead>
-                    <tr><th>কাস্টমার</th><th>পণ্য (Size/Color)</th><th>অ্যাকশন</th></tr>
-                </thead>
-                <tbody id="orderList"></tbody>
+               <thead>
+              <tr>
+                 <th>কাস্টমার ও ঠিকানা</th>
+               <th>পণ্য (Size/Color)</th>
+              <th>অ্যাকশন</th>
+               </tr>
+           </thead>
+             <tbody id="orderList"></tbody>
             </table>
         </div>
     </div>
@@ -176,26 +180,50 @@
     }
 
     function fetchOrders() {
-        db.ref('orders').on('value', (snap) => {
-            let html = "";
-            snap.forEach(child => {
-                let o = child.val();
-                html += `<tr>
-                    <td><b>${o.customer}</b><br><small>${o.phone}</small></td>
-                    <td>${o.product}<br><span class="badge">S: ${o.size} | C: ${o.color}</span></td>
-                    <td>
-                        <button class="btn btn-confirm" onclick="alert('Confirmed')">Confirm</button>
-                        <button class="btn btn-del" onclick="deleteItem('orders', '${child.key}')">Del</button>
-                    </td>
-                </tr>`;
-            });
-            document.getElementById('orderList').innerHTML = html;
+    db.ref('orders').on('value', (snap) => {
+        let html = "";
+        snap.forEach(child => {
+            let o = child.val();
+            // এখানে o.address আপনার ডেটাবেসের ফিল্ড নেম অনুযায়ী হতে হবে
+            let address = o.address ? o.address : "ঠিকানা দেওয়া নেই"; 
+            
+            html += `<tr>
+                <td>
+                    <b>${o.customer}</b><br>
+                    <small>${o.phone}</small><br>
+                    <small style="color: #555;">📍 ${address}</small>
+                </td>
+                <td>${o.product}<br><span class="badge">S: ${o.size} | C: ${o.color}</span></td>
+                <td>
+                    <button class="btn btn-edit" style="background:#34495e" onclick="viewCustomer('${child.key}')">View</button>
+                    <button class="btn btn-confirm" onclick="confirmOrder('${child.key}')">Confirm</button>
+                    <button class="btn btn-del" onclick="deleteItem('orders', '${child.key}')">Del</button>
+                </td>
+            </tr>`;
         });
-    }
+        document.getElementById('orderList').innerHTML = html;
+    });
+}
 
-    function deleteItem(path, id) {
-        if(confirm("Are you sure?")) db.ref(path + '/' + id).remove();
-    }
+// কাস্টমারের সব তথ্য দেখার জন্য নতুন ফাংশন
+function viewCustomer(id) {
+    db.ref('orders/' + id).once('value', (snap) => {
+        const o = snap.val();
+        alert(
+            "--- কাস্টমার ডিটেইলস ---\n\n" +
+            "নাম: " + o.customer + "\n" +
+            "ফোন: " + o.phone + "\n" +
+            "ঠিকানা: " + (o.address || "নেই") + "\n" +
+            "পণ্য: " + o.product + "\n" +
+            "সাইজ: " + o.size + " | কালার: " + o.color
+        );
+    });
+}
+
+function confirmOrder(id) {
+    alert("অর্ডারটি কনফার্ম করা হয়েছে!");
+    // এখানে চাইলে আপনি স্ট্যাটাস আপডেট করার কোড লিখতে পারেন
+}
 </script>
 </body>
 </html>
