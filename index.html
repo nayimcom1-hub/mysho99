@@ -3,73 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MonKutir - Cloud Shopping</title>
+    <title>MonKutir - Premium Cloud Shop</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: #f4f7f6; }
+        body { background-color: #f4f7f6; color: #333; }
 
+        /* Navbar */
         header {
-            background: #2c3e50; padding: 10px 5%;
+            background: #2c3e50; padding: 12px 5%;
             display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 1000;
+            position: sticky; top: 0; z-index: 1000; color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         .logo-area { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .shop-logo { width: 40px; height: 40px; object-fit: contain; background: #fff; border-radius: 5px; }
+        .logo-img { width: 40px; height: 40px; border-radius: 8px; background: white; padding: 2px; }
         .logo-text { font-size: 22px; font-weight: bold; color: #3498db; }
-        .logo-text span { color: #fff; }
-
-        .auth-display { color: white; display: flex; align-items: center; gap: 10px; font-size: 14px; }
-        .signout-btn { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .login-nav-btn { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-
-        .top-sec { background: #34495e; padding: 20px; text-align: center; }
-        .search-box { width: 90%; max-width: 500px; padding: 12px 20px; border-radius: 25px; border: none; outline: none; margin-bottom: 15px; }
         
-        .categories { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .cat-btn { padding: 8px 18px; background: rgba(255,255,255,0.1); color: white; border-radius: 20px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
-        .cat-btn.active { background: #3498db; }
+        .auth-nav { display: flex; gap: 10px; align-items: center; }
+        .user-email { font-size: 13px; color: #bdc3c7; }
+        .nav-btn { background: #3498db; color: white; border: none; padding: 7px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .logout-btn { background: #e74c3c; }
 
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 10px; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
+        /* Search & Categories */
+        .top-sec { background: #34495e; padding: 25px 5%; text-align: center; }
+        .search-box { width: 100%; max-width: 500px; padding: 12px 25px; border-radius: 30px; border: none; outline: none; margin-bottom: 20px; font-size: 16px; }
+        
+        .cat-bar { display: flex; justify-content: center; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+        .cat-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid #555; padding: 6px 18px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .cat-btn.active, .cat-btn:hover { background: #3498db; border-color: #3498db; }
 
-        .product-card { background: white; border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #eee; display: flex; flex-direction: column; }
-        .img-container { width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+        /* Product Grid */
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 15px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .product-card { background: white; border-radius: 15px; padding: 15px; text-align: center; border: 1px solid #eee; cursor: pointer; transition: 0.3s; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .img-container { width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
         .product-card img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .price-tag { font-size: 18px; color: #e74c3c; font-weight: bold; margin: 8px 0; }
+        .buy-btn { background: #27ae60; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
 
-        .price-tag { font-size: 18px; color: #e74c3c; font-weight: bold; margin-bottom: 10px; }
-        .product-name { font-size: 15px; font-weight: 600; margin-bottom: 8px; height: 40px; overflow: hidden; }
-        .buy-btn { background: #27ae60; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; padding: 15px; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 850px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .close { position: absolute; top: 15px; right: 20px; font-size: 35px; cursor: pointer; color: #999; line-height: 1; }
+        
+        /* Auth Form */
+        .auth-form { max-width: 400px; text-align: center; }
+        .auth-form input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; }
+        .auth-toggle { margin-top: 15px; font-size: 14px; color: #3498db; cursor: pointer; text-decoration: underline; }
+
+        /* Product Details Layout */
+        .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; text-align: left; }
+        #mainDetailImg { width: 100%; height: 350px; object-fit: contain; background: #fff; border-radius: 15px; border: 1px solid #f0f0f0; }
+        .thumb-grid { display: flex; gap: 10px; margin-top: 15px; overflow-x: auto; padding: 5px; }
+        .thumb { width: 65px; height: 65px; border: 2px solid #eee; border-radius: 8px; cursor: pointer; object-fit: cover; }
+        .thumb.active { border-color: #3498db; }
+
+        /* Selection Options */
+        .opt-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .opt-box { padding: 8px 15px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; background: #fff; transition: 0.2s; }
+        .opt-box:hover { border-color: #3498db; }
+        .opt-box.selected { background: #3498db; color: white; border-color: #2980b9; font-weight: bold; }
 
         @media (max-width: 600px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
-
-        /* Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 350px; text-align: center; }
-        .modal input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; }
-        .toggle-auth { font-size: 12px; color: #3498db; cursor: pointer; text-decoration: underline; margin-top: 10px; display: block; }
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo-area" onclick="location.reload()">
-        <img src="https://i.postimg.cc/6pwZL7XT/fsdtgyy.png" alt="Logo" class="shop-logo">
-        <div class="logo-text">MonKutir<span></span></div>
+        <img src="https://i.postimg.cc/6pwZL7XT/fsdtgyy.png" alt="Logo" class="logo-img">
+        <div class="logo-text">MonKutir</div>
     </div>
-    <div id="authBox">
-        <button class="login-nav-btn" onclick="openM('authModal')">Login / Sign Up</button>
-    </div>
+    <div class="auth-nav" id="navAuth"></div>
 </header>
 
 <div class="top-sec">
-    <input type="text" class="search-box" id="srch" onkeyup="search()" placeholder="পণ্য খুঁজুন...">
-    <div class="categories">
-        <button class="cat-btn active" onclick="filter('all', this)">All</button>
-        <button class="cat-btn" onclick="filter('Electronics', this)">Electronics</button>
-        <button class="cat-btn" onclick="filter('Fashion', this)">Fashion</button>
+    <input type="text" class="search-box" id="srch" onkeyup="search()" placeholder="পণ্যের নাম লিখে খুঁজুন...">
+    <div class="cat-bar">
+        <button class="cat-btn active" onclick="filterCat('All', this)">All</button>
+        <button class="cat-btn" onclick="filterCat('Electronics', this)">Electronics</button>
+        <button class="cat-btn" onclick="filterCat('Fashion', this)">Fashion</button>
+        <button class="cat-btn" onclick="filterCat('Gadget', this)">Gadget</button>
     </div>
 </div>
 
@@ -78,178 +98,219 @@
 </div>
 
 <div class="modal" id="authModal">
-    <div class="modal-content">
+    <div class="modal-content auth-form">
+        <span class="close" onclick="closeM('authModal')">&times;</span>
         <h2 id="authTitle">Login</h2>
-        <div id="signupFields" style="display: none;">
-            <input type="text" id="uName" placeholder="আপনার নাম">
+        <input type="email" id="authEmail" placeholder="আপনার ইমেইল">
+        <input type="password" id="authPass" placeholder="পাসওয়ার্ড">
+        <button class="buy-btn" id="authBtn" onclick="handleAuth()">Login</button>
+        <p class="auth-toggle" id="authToggle" onclick="toggleAuth()">অ্যাকাউন্ট নেই? সাইন-আপ করুন</p>
+    </div>
+</div>
+
+<div class="modal" id="detModal">
+    <div class="modal-content">
+        <span class="close" onclick="closeM('detModal')">&times;</span>
+        <div class="details-grid">
+            <div class="m-left">
+                <img id="mainDetailImg" src="">
+                <div class="thumb-grid" id="thumbList"></div>
+            </div>
+            <div class="m-right">
+                <h1 id="detName" style="color:#2c3e50; margin-bottom:10px;"></h1>
+                <h2 id="detPrice" style="color:#e74c3c; margin-bottom:20px;"></h2>
+                
+                <div id="szArea" style="margin-bottom:15px; display:none;">
+                    <p><b>Size সিলেক্ট করুন:</b></p>
+                    <div class="opt-container" id="detSizes"></div>
+                </div>
+                
+                <div id="clArea" style="margin-bottom:20px; display:none;">
+                    <p><b>Color সিলেক্ট করুন:</b></p>
+                    <div class="opt-container" id="detColors"></div>
+                </div>
+                
+                <button class="buy-btn" style="padding: 15px; font-size: 18px;" onclick="checkOrderFlow()">অর্ডার করুন</button>
+            </div>
         </div>
-        <input type="email" id="uEmail" placeholder="ইমেইল">
-        <input type="password" id="uPass" placeholder="পাসওয়ার্ড">
-        <button class="buy-btn" id="authSubmit" onclick="handleAuth()">Login</button>
-        <span class="toggle-auth" id="toggleText" onclick="toggleAuthMode()">নতুন অ্যাকাউন্ট খুলুন (Sign Up)</span>
-        <p onclick="closeM('authModal')" style="cursor:pointer; margin-top:10px; color:gray;">বন্ধ করুন</p>
     </div>
 </div>
 
 <div class="modal" id="shipModal">
-    <div class="modal-content">
-        <h2 id="pSel" style="color:#27ae60">অর্ডার</h2>
-        <input type="text" id="sName" placeholder="আপনার নাম">
-        <input type="text" id="sPhone" placeholder="ফোন নম্বর">
+    <div class="modal-content auth-form">
+        <span class="close" onclick="closeM('shipModal')">&times;</span>
+        <h2 style="color:#27ae60">অর্ডার ফর্ম</h2>
+        <p id="orderSummary" style="margin: 10px 0; font-size: 14px; background: #f9f9f9; padding: 10px; border-radius: 5px;"></p>
+        <input type="text" id="sName" placeholder="আপনার পুরো নাম">
+        <input type="text" id="sPhone" placeholder="সচল ফোন নম্বর">
         <input type="text" id="sAddr" placeholder="পুরো ঠিকানা">
-        <button class="buy-btn" onclick="submitOrder()">Confirm Order</button>
-        <p onclick="closeM('shipModal')" style="cursor:pointer; margin-top:10px; color:gray;">বাতিল</p>
+        <button class="buy-btn" onclick="submitFinalOrder()">অর্ডার নিশ্চিত করুন</button>
     </div>
 </div>
 
 <script>
     // --- Firebase Configuration ---
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
+        apiKey: "AIzaSyCkYMVn0Jh4Oo8Mgm8WyVAOVe65lSLGeks",
+        authDomain: "barrahms-app.firebaseapp.com",
         databaseURL: "https://barrahms-app-default-rtdb.firebaseio.com",
         projectId: "barrahms-app",
-        appId: "YOUR_APP_ID"
+        appId: "1:886499355529:web:25cbac7f63059da4b5cf58"
     };
 
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.database();
 
-    let allP = [];
+    let allProducts = [];
     let isLoginMode = true;
-    let selectedItemName = ""; // অর্ডারের জন্য পণ্যের নাম রাখার ভেরিয়েবল
-    let currentUser = JSON.parse(localStorage.getItem('shopUser')) || null;
+    let selectedPName = "", selectedSize = "", selectedColor = "";
 
-    function load() {
-        if(currentUser) updateHeader();
-        db.ref('products').on('value', (snap) => {
+    // 1. Auth Status চেক
+    auth.onAuthStateChanged(user => {
+        const navAuth = document.getElementById('navAuth');
+        if (user) {
+            navAuth.innerHTML = `<span class="user-email">${user.email.split('@')[0]}</span>
+                                <button class="nav-btn logout-btn" onclick="auth.signOut()">Logout</button>`;
+        } else {
+            navAuth.innerHTML = `<button class="nav-btn" onclick="openM('authModal')">Login / Sign Up</button>`;
+        }
+    });
+
+    // 2. পণ্য লোড করা
+    function loadProducts() {
+        db.ref('products').on('value', snap => {
             const data = snap.val();
-            const displayDiv = document.getElementById('display');
-            if(!data) { displayDiv.innerHTML = "কোনো পণ্য নেই!"; return; }
-            allP = Object.keys(data).map(key => ({...data[key], id: key}));
-            render(allP);
+            if(!data) return;
+            allProducts = Object.keys(data).map(key => ({...data[key], id: key}));
+            renderUI(allProducts);
         });
     }
 
-    function render(items) {
+    function renderUI(items) {
         document.getElementById('display').innerHTML = items.map(p => `
-            <div class="product-card">
+            <div class="product-card" onclick="showProductDetails('${p.id}')">
                 <div class="img-container"><img src="${p.image}"></div>
-                <div class="product-name">${p.name}</div>
+                <div style="font-weight:600; height:42px; overflow:hidden;">${p.name}</div>
                 <div class="price-tag">৳${p.offer || p.price}</div>
-                <button class="buy-btn" onclick="buy('${p.name}')">Buy Now</button>
+                <button class="buy-btn">বিস্তারিত দেখুন</button>
             </div>`).join('');
     }
 
-    // --- Authentication Logic ---
-    function toggleAuthMode() {
+    // 3. Login/Signup লজিক
+    function toggleAuth() {
         isLoginMode = !isLoginMode;
         document.getElementById('authTitle').innerText = isLoginMode ? "Login" : "Sign Up";
-        document.getElementById('signupFields').style.display = isLoginMode ? "none" : "block";
-        document.getElementById('authSubmit').innerText = isLoginMode ? "Login" : "Sign Up";
-        document.getElementById('toggleText').innerText = isLoginMode ? "নতুন অ্যাকাউন্ট খুলুন (Sign Up)" : "আগের অ্যাকাউন্ট আছে? (Login)";
+        document.getElementById('authBtn').innerText = isLoginMode ? "Login" : "Create Account";
+        document.getElementById('authToggle').innerText = isLoginMode ? "অ্যাকাউন্ট নেই? সাইন-আপ করুন" : "আগের অ্যাকাউন্ট আছে? লগইন করুন";
     }
 
     function handleAuth() {
-        const email = document.getElementById('uEmail').value.trim();
-        const pass = document.getElementById('uPass').value.trim();
-        const name = document.getElementById('uName').value.trim();
-
-        if(!email || !pass) return alert("ইমেইল এবং পাসওয়ার্ড দিন!");
-
-        const userId = email.replace(/[.$#[\]]/g, "_");
-
-        if(!isLoginMode) {
-            if(!name) return alert("আপনার নাম দিন!");
-            db.ref('users/' + userId).set({ name, email, pass }, (err) => {
-                if(!err) {
-                    alert("অ্যাকাউন্ট তৈরি হয়েছে! এখন লগইন করুন।");
-                    toggleAuthMode();
-                }
-            });
+        const email = document.getElementById('authEmail').value, pass = document.getElementById('authPass').value;
+        if(!email || !pass) return alert("সব তথ্য দিন!");
+        if(isLoginMode) {
+            auth.signInWithEmailAndPassword(email, pass).then(() => { alert("লগইন সফল!"); closeM('authModal'); })
+            .catch(e => alert("ভুল ইমেইল বা পাসওয়ার্ড!"));
         } else {
-            db.ref('users/' + userId).once('value', (snap) => {
-                const userData = snap.val();
-                if(userData && userData.pass === pass) {
-                    currentUser = userData;
-                    localStorage.setItem('shopUser', JSON.stringify(userData));
-                    alert("লগইন সফল!");
-                    location.reload();
-                } else {
-                    alert("ভুল ইমেইল বা পাসওয়ার্ড!");
-                }
-            });
+            auth.createUserWithEmailAndPassword(email, pass).then(() => { alert("অ্যাকাউন্ট তৈরি হয়েছে!"); closeM('authModal'); })
+            .catch(e => alert(e.message));
         }
     }
 
-    function updateHeader() {
-        document.getElementById('authBox').innerHTML = `
-            <div class="auth-display">
-                <span>👤 ${currentUser.name}</span>
-                <button class="signout-btn" onclick="signOut()">Sign Out</button>
-            </div>`;
+    // 4. পণ্যর বিস্তারিত ও সাইজ/কালার সিলেকশন
+    function showProductDetails(id) {
+        const p = allProducts.find(i => i.id === id);
+        selectedPName = p.name;
+        selectedSize = ""; selectedColor = ""; // রিসেট
+
+        document.getElementById('detName').innerText = p.name;
+        document.getElementById('detPrice').innerText = "৳" + (p.offer || p.price);
+        document.getElementById('mainDetailImg').src = p.image;
+
+        // ইমেজ থাম্বনেইল
+        let imgs = [p.image];
+        if(p.extraImages) imgs = imgs.concat(p.extraImages.split(',').map(s => s.trim()));
+        document.getElementById('thumbList').innerHTML = imgs.map(url => `<img src="${url}" class="thumb" onclick="document.getElementById('mainDetailImg').src='${url}'">`).join('');
+
+        // সাইজ ও কালার অপশন রেন্ডার
+        renderOptions('detSizes', p.sizes, 'szArea', 'size');
+        renderOptions('detColors', p.colors, 'clArea', 'color');
+
+        openM('detModal');
     }
 
-    function signOut() {
-        localStorage.removeItem('shopUser');
-        alert("সাইন-আউট করা হয়েছে।");
-        location.reload();
-    }
-
-    // --- Order Logic ---
-    function buy(name) {
-        if(!currentUser) return openM('authModal');
-        selectedItemName = name; // পণ্য সিলেক্ট করা হলো
-        document.getElementById('pSel').innerText = name;
-        openM('shipModal');
-    }
-
-    function submitOrder() {
-        const name = document.getElementById('sName').value.trim();
-        const phone = document.getElementById('sPhone').value.trim();
-        const addr = document.getElementById('sAddr').value.trim();
-
-        if(!name || !phone || !addr) return alert("সব তথ্য পূরণ করুন!");
-
-        const orderData = {
-            customerName: name,
-            customerPhone: phone,
-            address: addr,
-            product: selectedItemName,
-            userEmail: currentUser.email,
-            orderDate: new Date().toLocaleString()
-        };
-
-        db.ref('orders').push(orderData)
-            .then(() => {
-                alert("আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে!");
-                closeM('shipModal');
-                // ফিল্ডগুলো খালি করা
-                document.getElementById('sName').value = "";
-                document.getElementById('sPhone').value = "";
-                document.getElementById('sAddr').value = "";
-            })
-            .catch((err) => {
-                alert("অর্ডার করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
-                console.error(err);
+    function renderOptions(divId, data, areaId, type) {
+        const div = document.getElementById(divId);
+        div.innerHTML = "";
+        if(data && data.trim() !== "") {
+            document.getElementById(areaId).style.display = "block";
+            data.split(',').forEach(v => {
+                const span = document.createElement('span');
+                span.className = 'opt-box';
+                span.innerText = v.trim();
+                span.onclick = function() {
+                    div.querySelectorAll('.opt-box').forEach(el => el.classList.remove('selected'));
+                    span.classList.add('selected');
+                    if(type === 'size') selectedSize = v.trim();
+                    if(type === 'color') selectedColor = v.trim();
+                };
+                div.appendChild(span);
             });
+        } else {
+            document.getElementById(areaId).style.display = "none";
+            if(type === 'size') selectedSize = "Default";
+            if(type === 'color') selectedColor = "Default";
+        }
     }
 
-    // --- Utility Functions ---
+    // 5. অর্ডার চেক ও সাবমিট
+    function checkOrderFlow() {
+        const hasSize = document.getElementById('szArea').style.display !== 'none';
+        const hasColor = document.getElementById('clArea').style.display !== 'none';
+
+        if((hasSize && !selectedSize) || (hasColor && !selectedColor)) {
+            return alert("অনুগ্রহ করে সাইজ এবং কালার সিলেক্ট করুন!");
+        }
+
+        if(!auth.currentUser) {
+            alert("অর্ডার করতে আগে লগইন করুন!");
+            closeM('detModal'); openM('authModal');
+        } else {
+            closeM('detModal');
+            document.getElementById('orderSummary').innerText = `পণ্য: ${selectedPName}\nসাইজ: ${selectedSize} | কালার: ${selectedColor}`;
+            openM('shipModal');
+        }
+    }
+
+    function submitFinalOrder() {
+        const n = document.getElementById('sName').value, ph = document.getElementById('sPhone').value, ad = document.getElementById('sAddr').value;
+        if(!n || !ph || !ad) return alert("সব তথ্য পূরণ করুন!");
+
+        db.ref('orders').push({
+            customer: n, phone: ph, address: ad,
+            product: selectedPName, size: selectedSize, color: selectedColor,
+            email: auth.currentUser.email, date: new Date().toLocaleString()
+        }).then(() => {
+            alert("অর্ডার সফলভাবে জমা হয়েছে!");
+            closeM('shipModal');
+        });
+    }
+
+    // ফিল্টার ও সার্চ
     function search() {
         let v = document.getElementById('srch').value.toLowerCase();
-        render(allP.filter(p => p.name.toLowerCase().includes(v)));
+        renderUI(allProducts.filter(p => p.name.toLowerCase().includes(v)));
     }
-
-    function filter(category, btn) {
+    function filterCat(cat, btn) {
         document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        render(category === 'all' ? allP : allP.filter(p => p.category === category));
+        renderUI(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat));
     }
 
     function openM(id) { document.getElementById(id).style.display = 'flex'; }
     function closeM(id) { document.getElementById(id).style.display = 'none'; }
 
-    window.onload = load;
+    window.onload = loadProducts;
 </script>
 </body>
 </html>
